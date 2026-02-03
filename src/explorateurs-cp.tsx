@@ -1,6 +1,14 @@
 import { useState } from "react";
 
-type IslandId = "francais" | "maths" | "monde" | "arts";
+type IslandId =
+  | "francais"
+  | "maths"
+  | "monde"
+  | "arts"
+  | "histoire"
+  | "geo"
+  | "orthographe"
+  | "blagues";
 
 interface Avatar {
   id: string;
@@ -22,6 +30,10 @@ interface Progress {
   maths: IslandProgress;
   monde: IslandProgress;
   arts: IslandProgress;
+  histoire: IslandProgress;
+  geo: IslandProgress;
+  orthographe: IslandProgress;
+  blagues: IslandProgress;
 }
 
 const INITIAL_PROGRESS: Progress = {
@@ -32,6 +44,10 @@ const INITIAL_PROGRESS: Progress = {
   maths: { level: 1, unlocked: [1], stars: [0, 0, 0] },
   monde: { level: 1, unlocked: [1], stars: [0, 0, 0] },
   arts: { level: 1, unlocked: [1], stars: [0, 0, 0] },
+  histoire: { level: 1, unlocked: [1], stars: [0, 0, 0] },
+  geo: { level: 1, unlocked: [1], stars: [0, 0, 0] },
+  orthographe: { level: 1, unlocked: [1], stars: [0, 0, 0] },
+  blagues: { level: 1, unlocked: [1], stars: [0, 0, 0] },
 };
 
 const AVATARS: Avatar[] = [
@@ -68,6 +84,34 @@ const ISLANDS = [
     emoji: "🎨",
     color: "bg-purple-500",
     desc: "Arts & Logique",
+  },
+  {
+    id: "histoire" as const,
+    name: "Île du Temps",
+    emoji: "⏳",
+    color: "bg-amber-600",
+    desc: "Histoire",
+  },
+  {
+    id: "geo" as const,
+    name: "Île de France",
+    emoji: "🗼",
+    color: "bg-rose-500",
+    desc: "Géographie France",
+  },
+  {
+    id: "orthographe" as const,
+    name: "Île des Mots",
+    emoji: "✏️",
+    color: "bg-teal-500",
+    desc: "Orthographe",
+  },
+  {
+    id: "blagues" as const,
+    name: "Île Rigolote",
+    emoji: "😂",
+    color: "bg-yellow-500",
+    desc: "Blagues",
   },
 ];
 
@@ -532,6 +576,466 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
       },
     ],
   },
+  histoire: {
+    1: [
+      {
+        type: "qcm",
+        q: "Comment appelle-t-on les hommes qui vivaient dans des grottes ?",
+        options: ["Les chevaliers", "Les hommes préhistoriques", "Les rois"],
+        answer: "Les hommes préhistoriques",
+        img: "🏔️",
+      },
+      {
+        type: "qcm",
+        q: "Quel animal les hommes préhistoriques chassaient-ils ?",
+        options: ["Le mammouth", "Le chat", "Le poisson rouge"],
+        answer: "Le mammouth",
+        img: "🦣",
+      },
+      {
+        type: "qcm",
+        q: "Que portait un chevalier pour se protéger ?",
+        options: ["Un pyjama", "Une armure", "Un manteau"],
+        answer: "Une armure",
+        img: "🛡️",
+      },
+      {
+        type: "qcm",
+        q: "Où vivaient les chevaliers ?",
+        options: ["Dans des igloos", "Dans des châteaux", "Dans des tentes"],
+        answer: "Dans des châteaux",
+        img: "🏰",
+      },
+      {
+        type: "qcm",
+        q: "Avec quoi les hommes préhistoriques faisaient-ils du feu ?",
+        options: ["Un briquet", "Des pierres", "Une allumette"],
+        answer: "Des pierres",
+        img: "🔥",
+      },
+    ],
+    2: [
+      {
+        type: "qcm",
+        q: "Quel roi français était surnommé le Roi-Soleil ?",
+        options: ["Louis XIV", "Napoléon", "Charlemagne"],
+        answer: "Louis XIV",
+        img: "👑",
+      },
+      {
+        type: "qcm",
+        q: "Qui a inventé l'imprimerie ?",
+        options: ["Gutenberg", "Napoléon", "Jules César"],
+        answer: "Gutenberg",
+        img: "📖",
+      },
+      {
+        type: "qcm",
+        q: "Quel château est connu pour Louis XIV ?",
+        options: ["Versailles", "Disneyland", "La Tour Eiffel"],
+        answer: "Versailles",
+        img: "🏰",
+      },
+      {
+        type: "qcm",
+        q: "Qui était Jeanne d'Arc ?",
+        options: ["Une reine", "Une guerrière", "Une chanteuse"],
+        answer: "Une guerrière",
+        img: "⚔️",
+      },
+      {
+        type: "qcm",
+        q: "Quelle invention permet de se déplacer sur deux roues ?",
+        options: ["La voiture", "Le vélo", "L'avion"],
+        answer: "Le vélo",
+        img: "🚲",
+      },
+    ],
+    3: [
+      {
+        type: "qcm",
+        q: "En quelle année a eu lieu la Révolution française ?",
+        options: ["1789", "1515", "1900"],
+        answer: "1789",
+        img: "🇫🇷",
+      },
+      {
+        type: "qcm",
+        q: "Quel monument a été construit pour la Révolution ?",
+        options: ["La Tour Eiffel", "L'Arc de Triomphe", "La Bastille"],
+        answer: "La Bastille",
+        img: "🏛️",
+      },
+      {
+        type: "qcm",
+        q: "Qui était Napoléon Bonaparte ?",
+        options: ["Un empereur", "Un peintre", "Un explorateur"],
+        answer: "Un empereur",
+        img: "👑",
+      },
+      {
+        type: "qcm",
+        q: "La Première Guerre mondiale a commencé en...",
+        options: ["1914", "1789", "2000"],
+        answer: "1914",
+        img: "📜",
+      },
+      {
+        type: "qcm",
+        q: "Quel événement a marqué le XXe siècle en France ?",
+        options: [
+          "La construction de la Tour Eiffel",
+          "Les deux guerres mondiales",
+          "La découverte de l'Amérique",
+        ],
+        answer: "Les deux guerres mondiales",
+        img: "🕊️",
+      },
+    ],
+  },
+  geo: {
+    1: [
+      {
+        type: "qcm",
+        q: "Quelle est la capitale de la France ?",
+        options: ["Lyon", "Paris", "Marseille"],
+        answer: "Paris",
+        img: "🗼",
+      },
+      {
+        type: "qcm",
+        q: "De quelles couleurs est le drapeau français ?",
+        options: [
+          "Bleu, blanc, rouge",
+          "Vert, blanc, rouge",
+          "Bleu, jaune, rouge",
+        ],
+        answer: "Bleu, blanc, rouge",
+        img: "🇫🇷",
+      },
+      {
+        type: "qcm",
+        q: "Quelle est la plus grande ville de France ?",
+        options: ["Toulouse", "Paris", "Nice"],
+        answer: "Paris",
+        img: "🏙️",
+      },
+      {
+        type: "qcm",
+        q: "La France est en...",
+        options: ["Afrique", "Asie", "Europe"],
+        answer: "Europe",
+        img: "🌍",
+      },
+      {
+        type: "qcm",
+        q: "Quel monument célèbre se trouve à Paris ?",
+        options: ["La Tour Eiffel", "Big Ben", "La Statue de la Liberté"],
+        answer: "La Tour Eiffel",
+        img: "🗼",
+      },
+    ],
+    2: [
+      {
+        type: "qcm",
+        q: "Quel est le plus long fleuve de France ?",
+        options: ["La Seine", "La Loire", "Le Rhône"],
+        answer: "La Loire",
+        img: "🏞️",
+      },
+      {
+        type: "qcm",
+        q: "Quelle est la plus haute montagne de France ?",
+        options: ["Le Mont Blanc", "Le Puy de Dôme", "Le Mont Ventoux"],
+        answer: "Le Mont Blanc",
+        img: "🏔️",
+      },
+      {
+        type: "qcm",
+        q: "Quelle mer borde le sud de la France ?",
+        options: ["La mer du Nord", "La Méditerranée", "L'océan Atlantique"],
+        answer: "La Méditerranée",
+        img: "🌊",
+      },
+      {
+        type: "qcm",
+        q: "Combien de régions y a-t-il en France métropolitaine ?",
+        options: ["10", "13", "20"],
+        answer: "13",
+        img: "🗺️",
+      },
+      {
+        type: "qcm",
+        q: "Quelle chaîne de montagnes sépare la France de l'Espagne ?",
+        options: ["Les Alpes", "Les Pyrénées", "Le Jura"],
+        answer: "Les Pyrénées",
+        img: "⛰️",
+      },
+    ],
+    3: [
+      {
+        type: "qcm",
+        q: "Quel département français est une île dans l'océan Indien ?",
+        options: ["La Guadeloupe", "La Réunion", "La Martinique"],
+        answer: "La Réunion",
+        img: "🏝️",
+      },
+      {
+        type: "qcm",
+        q: "Quel pays ne partage PAS de frontière avec la France ?",
+        options: ["L'Espagne", "La Pologne", "L'Italie"],
+        answer: "La Pologne",
+        img: "🗺️",
+      },
+      {
+        type: "qcm",
+        q: "Quel océan borde l'ouest de la France ?",
+        options: ["L'océan Pacifique", "L'océan Atlantique", "L'océan Indien"],
+        answer: "L'océan Atlantique",
+        img: "🌊",
+      },
+      {
+        type: "qcm",
+        q: "La Corse est...",
+        options: ["Un pays", "Une île française", "Une montagne"],
+        answer: "Une île française",
+        img: "🏝️",
+      },
+      {
+        type: "qcm",
+        q: "Quel fleuve traverse Paris ?",
+        options: ["La Loire", "Le Rhône", "La Seine"],
+        answer: "La Seine",
+        img: "🌉",
+      },
+    ],
+  },
+  orthographe: {
+    1: [
+      {
+        type: "completion",
+        q: "ch_t",
+        options: [],
+        answer: "a",
+        img: "🐱",
+      },
+      {
+        type: "completion",
+        q: "l__p",
+        options: [],
+        answer: "ou",
+        img: "🐺",
+      },
+      {
+        type: "completion",
+        q: "o_rs",
+        options: [],
+        answer: "u",
+        img: "🐻",
+      },
+      {
+        type: "completion",
+        q: "poi_son",
+        options: [],
+        answer: "s",
+        img: "🐟",
+      },
+      {
+        type: "completion",
+        q: "la_in",
+        options: [],
+        answer: "p",
+        img: "🐰",
+      },
+    ],
+    2: [
+      {
+        type: "completion",
+        q: "m__son",
+        options: [],
+        answer: "ai",
+        img: "🏠",
+      },
+      {
+        type: "completion",
+        q: "pant_l_n",
+        options: [],
+        answer: "ao",
+        img: "👖",
+      },
+      {
+        type: "completion",
+        q: "b_l_nce",
+        options: [],
+        answer: "aa",
+        img: "⚖️",
+      },
+      {
+        type: "completion",
+        q: "c_ch_n",
+        options: [],
+        answer: "oo",
+        img: "🐷",
+      },
+      {
+        type: "completion",
+        q: "m_nt_gne",
+        options: [],
+        answer: "oa",
+        img: "⛰️",
+      },
+    ],
+    3: [
+      {
+        type: "completion",
+        q: "papi_lon",
+        options: [],
+        answer: "l",
+        img: "🦋",
+      },
+      {
+        type: "completion",
+        q: "cha_eau",
+        options: [],
+        answer: "p",
+        img: "🎩",
+      },
+      {
+        type: "completion",
+        q: "bi_ycl_tte",
+        options: [],
+        answer: "ce",
+        img: "🚲",
+      },
+      {
+        type: "completion",
+        q: "él_ph_nt",
+        options: [],
+        answer: "éa",
+        img: "🐘",
+      },
+      {
+        type: "completion",
+        q: "cr_cod_le",
+        options: [],
+        answer: "oi",
+        img: "🐊",
+      },
+    ],
+  },
+  blagues: {
+    1: [
+      {
+        type: "blague",
+        q: "Que dit un escargot quand il croise une limace ?",
+        options: [],
+        answer: "Oh la belle décapotable !",
+        img: "🐌",
+      },
+      {
+        type: "blague",
+        q: "Pourquoi les plongeurs plongent-ils toujours en arrière ?",
+        options: [],
+        answer: "Parce que sinon ils tomberaient dans le bateau !",
+        img: "🤿",
+      },
+      {
+        type: "blague",
+        q: "Quel est le comble pour un électricien ?",
+        options: [],
+        answer: "De ne pas être au courant !",
+        img: "💡",
+      },
+      {
+        type: "blague",
+        q: "Que fait un crocodile quand il rencontre une belle fille ?",
+        options: [],
+        answer: "Il Lacoste !",
+        img: "🐊",
+      },
+      {
+        type: "blague",
+        q: "Pourquoi le livre de maths est-il triste ?",
+        options: [],
+        answer: "Parce qu'il a trop de problèmes !",
+        img: "📚",
+      },
+    ],
+    2: [
+      {
+        type: "blague",
+        q: "Qu'est-ce qu'un canif ?",
+        options: [],
+        answer: "Un petit fien !",
+        img: "🐕",
+      },
+      {
+        type: "blague",
+        q: "Quel est le sport le plus fruité ?",
+        options: [],
+        answer: "La boxe, parce qu'on se prend des pêches et des prunes !",
+        img: "🥊",
+      },
+      {
+        type: "blague",
+        q: "Que dit une fraise le jour de la Saint-Valentin ?",
+        options: [],
+        answer: "Je t'aime à la folie, ma petite Charlotte !",
+        img: "🍓",
+      },
+      {
+        type: "blague",
+        q: "Pourquoi les fantômes sont-ils de mauvais menteurs ?",
+        options: [],
+        answer: "Parce qu'on voit à travers !",
+        img: "👻",
+      },
+      {
+        type: "blague",
+        q: "Quel est le comble pour un jardinier ?",
+        options: [],
+        answer: "De raconter des salades !",
+        img: "🥬",
+      },
+    ],
+    3: [
+      {
+        type: "blague",
+        q: "Que dit un hibou quand il joue à cache-cache ?",
+        options: [],
+        answer: "Chouette, je suis bien caché !",
+        img: "🦉",
+      },
+      {
+        type: "blague",
+        q: "Pourquoi les poissons n'aiment pas l'ordinateur ?",
+        options: [],
+        answer: "Parce qu'ils ont peur du net !",
+        img: "🐟",
+      },
+      {
+        type: "blague",
+        q: "Quel est le comble pour une horloge ?",
+        options: [],
+        answer: "D'en avoir ras-le-bol de tourner en rond !",
+        img: "🕐",
+      },
+      {
+        type: "blague",
+        q: "Comment appelle-t-on un chat tombé dans un pot de peinture le jour de Noël ?",
+        options: [],
+        answer: "Un chat-peint de Noël !",
+        img: "🐱",
+      },
+      {
+        type: "blague",
+        q: "Que se disent deux bougies qui se rencontrent ?",
+        options: [],
+        answer: "On sort ce soir ? Oui, c'est la fête !",
+        img: "🕯️",
+      },
+    ],
+  },
 };
 
 export default function App() {
@@ -544,6 +1048,8 @@ export default function App() {
     null,
   );
   const [levelComplete, setLevelComplete] = useState(false);
+  const [textInput, setTextInput] = useState("");
+  const [jokeRevealed, setJokeRevealed] = useState(false);
 
   const selectAvatar = (avatar: Avatar) => {
     setProgress((p) => ({ ...p, avatar }));
@@ -562,13 +1068,14 @@ export default function App() {
     setExerciseIndex(0);
     setFeedback(null);
     setLevelComplete(false);
+    setTextInput("");
+    setJokeRevealed(false);
     setScreen("exercise");
   };
 
-  const checkAnswer = (answer: string) => {
+  const addStarAndAdvance = (correct: boolean) => {
     if (!currentIsland) return;
     const exercises = EXERCISES[currentIsland][currentLevel];
-    const correct = exercises[exerciseIndex].answer === answer;
 
     if (correct) {
       setProgress((p) => {
@@ -586,6 +1093,7 @@ export default function App() {
 
     setTimeout(() => {
       setFeedback(null);
+      setTextInput("");
       if (exerciseIndex < exercises.length - 1) {
         setExerciseIndex((i) => i + 1);
       } else {
@@ -605,6 +1113,56 @@ export default function App() {
         setLevelComplete(true);
       }
     }, 1500);
+  };
+
+  const checkAnswer = (answer: string) => {
+    if (!currentIsland) return;
+    const exercises = EXERCISES[currentIsland][currentLevel];
+    const correct = exercises[exerciseIndex].answer === answer;
+    addStarAndAdvance(correct);
+  };
+
+  const checkCompletion = () => {
+    if (!currentIsland) return;
+    const exercises = EXERCISES[currentIsland][currentLevel];
+    const correct =
+      textInput.toLowerCase() === exercises[exerciseIndex].answer.toLowerCase();
+    addStarAndAdvance(correct);
+  };
+
+  const handleJokeNext = () => {
+    if (!currentIsland) return;
+    const exercises = EXERCISES[currentIsland][currentLevel];
+
+    // Always award a star for jokes
+    setProgress((p) => {
+      const newStars = [...p[currentIsland].stars];
+      newStars[currentLevel - 1] += 1;
+      return {
+        ...p,
+        stars: p.stars + 1,
+        [currentIsland]: { ...p[currentIsland], stars: newStars },
+      };
+    });
+
+    setJokeRevealed(false);
+    if (exerciseIndex < exercises.length - 1) {
+      setExerciseIndex((i) => i + 1);
+    } else {
+      const earnedStars = progress[currentIsland].stars[currentLevel - 1] + 1;
+      if (earnedStars >= 3 && currentLevel < 3) {
+        setProgress((p) => ({
+          ...p,
+          [currentIsland]: {
+            ...p[currentIsland],
+            unlocked: [
+              ...new Set([...p[currentIsland].unlocked, currentLevel + 1]),
+            ],
+          },
+        }));
+      }
+      setLevelComplete(true);
+    }
   };
 
   const resetGame = () => {
@@ -669,7 +1227,7 @@ export default function App() {
           </h2>
 
           {/* Islands */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {ISLANDS.map((island) => {
               const islandProgress = progress[island.id];
               const totalStars = islandProgress.stars.reduce(
@@ -905,26 +1463,88 @@ export default function App() {
               {exercise.q}
             </h3>
 
-            <div className="space-y-3">
-              {exercise.options.map((opt: string, i: number) => (
-                <button
-                  key={i}
-                  onClick={() => !feedback && checkAnswer(opt)}
-                  disabled={!!feedback}
-                  className={`w-full p-4 rounded-xl text-lg font-medium transition-all ${
-                    feedback && opt === exercise.answer
-                      ? "bg-green-500 text-white"
-                      : feedback && opt !== exercise.answer
-                        ? "bg-gray-200 text-gray-400"
-                        : "bg-gray-100 hover:bg-blue-100 text-gray-800 hover:scale-102"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
+            {/* QCM type */}
+            {exercise.type === "qcm" && (
+              <div className="space-y-3">
+                {exercise.options.map((opt: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => !feedback && checkAnswer(opt)}
+                    disabled={!!feedback}
+                    className={`w-full p-4 rounded-xl text-lg font-medium transition-all ${
+                      feedback && opt === exercise.answer
+                        ? "bg-green-500 text-white"
+                        : feedback && opt !== exercise.answer
+                          ? "bg-gray-200 text-gray-400"
+                          : "bg-gray-100 hover:bg-blue-100 text-gray-800 hover:scale-102"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {feedback && (
+            {/* Completion type */}
+            {exercise.type === "completion" && (
+              <div className="space-y-4">
+                <p className="text-center text-gray-500 text-sm">
+                  Tape les lettres manquantes :
+                </p>
+                <input
+                  type="text"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  disabled={!!feedback}
+                  autoFocus
+                  className="w-full p-4 rounded-xl text-lg font-medium text-center border-2 border-gray-300 focus:border-blue-400 focus:outline-none"
+                  placeholder="..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !feedback && textInput) {
+                      checkCompletion();
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => checkCompletion()}
+                  disabled={!!feedback || !textInput}
+                  className="w-full p-4 rounded-xl text-lg font-medium bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Valider
+                </button>
+              </div>
+            )}
+
+            {/* Blague type */}
+            {exercise.type === "blague" && (
+              <div className="space-y-4">
+                {!jokeRevealed ? (
+                  <button
+                    onClick={() => setJokeRevealed(true)}
+                    className="w-full p-4 rounded-xl text-lg font-medium bg-yellow-400 hover:bg-yellow-500 text-yellow-900 transition-all hover:scale-102"
+                  >
+                    Voir la réponse !
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-yellow-50 p-4 rounded-xl text-center animate-bounce">
+                      <p className="text-lg font-bold text-yellow-800">
+                        {exercise.answer}
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-1 text-2xl">⭐</div>
+                    <button
+                      onClick={() => handleJokeNext()}
+                      className="w-full p-4 rounded-xl text-lg font-medium bg-green-500 hover:bg-green-600 text-white transition-all"
+                    >
+                      Blague suivante
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {feedback && exercise.type !== "blague" && (
               <div
                 className={`mt-4 p-4 rounded-xl text-center text-lg font-bold ${
                   feedback === "correct"
