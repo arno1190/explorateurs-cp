@@ -1,4 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 type IslandId =
   | "francais"
@@ -51,9 +60,10 @@ const INITIAL_PROGRESS: Progress = {
 };
 
 const AVATARS: Avatar[] = [
-  { id: "dino", emoji: "🦖", name: "Rex le Dino" },
-  { id: "astro", emoji: "👨‍🚀", name: "Astro" },
-  { id: "explorer", emoji: "🧭", name: "Luna l'Exploratrice" },
+  { id: "fox", emoji: "🦊", name: "Rusé le Renard" },
+  { id: "dragon", emoji: "🐉", name: "Flamme le Dragon" },
+  { id: "lion", emoji: "🦁", name: "Roi le Lion" },
+  { id: "unicorn", emoji: "🦄", name: "Étoile la Licorne" },
 ];
 
 const ISLANDS = [
@@ -61,49 +71,49 @@ const ISLANDS = [
     id: "francais" as const,
     name: "Île Dino-Lettres",
     emoji: "🏝️",
-    color: "bg-green-500",
+    color: "bg-emerald-600",
     desc: "Français",
   },
   {
     id: "maths" as const,
     name: "Île Volcan-Nombres",
     emoji: "🌋",
-    color: "bg-orange-500",
+    color: "bg-red-500",
     desc: "Mathématiques",
   },
   {
     id: "monde" as const,
     name: "Île Spatiale",
     emoji: "🚀",
-    color: "bg-blue-500",
+    color: "bg-indigo-500",
     desc: "Questionner le monde",
   },
   {
     id: "arts" as const,
     name: "Île Créative",
     emoji: "🎨",
-    color: "bg-purple-500",
+    color: "bg-fuchsia-500",
     desc: "Arts & Logique",
   },
   {
     id: "histoire" as const,
     name: "Île du Temps",
     emoji: "⏳",
-    color: "bg-amber-600",
+    color: "bg-amber-700",
     desc: "Histoire",
   },
   {
     id: "geo" as const,
     name: "Île de France",
     emoji: "🗼",
-    color: "bg-rose-500",
+    color: "bg-rose-600",
     desc: "Géographie France",
   },
   {
     id: "orthographe" as const,
     name: "Île des Mots",
     emoji: "✏️",
-    color: "bg-teal-500",
+    color: "bg-cyan-600",
     desc: "Orthographe",
   },
   {
@@ -123,117 +133,130 @@ interface Exercise {
   img: string;
 }
 
+const TIMER_QCM: Record<number, number> = { 1: 25, 2: 20, 3: 15 };
+const TIMER_COMPLETION: Record<number, number> = { 1: 35, 2: 30, 3: 25 };
+
 const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
   francais: {
     1: [
       {
         type: "qcm",
-        q: 'Combien de syllabes dans "DINOSAURE" ?',
-        options: ["2", "3", "4"],
-        answer: "4",
-        img: "🦕",
-      },
-      {
-        type: "qcm",
-        q: 'Quelle syllabe entends-tu au début de "VOLCAN" ?',
-        options: ["CAN", "VOL", "LAN"],
-        answer: "VOL",
-        img: "🌋",
-      },
-      {
-        type: "qcm",
-        q: 'Combien de syllabes dans "ÉTOILE" ?',
-        options: ["2", "3", "4"],
+        q: 'Combien de syllabes dans "CROCODILE" ?',
+        options: ["2", "3", "4", "5"],
         answer: "3",
-        img: "⭐",
+        img: "🐊",
       },
       {
         type: "qcm",
-        q: 'Quelle syllabe est à la fin de "PLANÈTE" ?',
-        options: ["PLA", "NÈ", "TE"],
-        answer: "TE",
-        img: "🪐",
+        q: 'Quel son entends-tu à la fin de "KANGOUROU" ?',
+        options: ["KAN", "GOU", "ROU", "KOU"],
+        answer: "ROU",
+        img: "🦘",
       },
       {
         type: "qcm",
-        q: "Quel mot a 2 syllabes ?",
-        options: ["LAVE", "DINOSAURE", "MÉTÉORITE"],
-        answer: "LAVE",
-        img: "🔥",
+        q: 'Combien de syllabes dans "ORDINATEUR" ?',
+        options: ["2", "3", "4", "5"],
+        answer: "4",
+        img: "💻",
+      },
+      {
+        type: "qcm",
+        q: 'Quel mot commence par le même son que "CHAPEAU" ?',
+        options: ["SAPIN", "CHEVAL", "PAPA", "CAMION"],
+        answer: "CHEVAL",
+        img: "🎩",
+      },
+      {
+        type: "qcm",
+        q: 'Combien de syllabes dans "PARACHUTE" ?',
+        options: ["2", "3", "4", "5"],
+        answer: "3",
+        img: "🪂",
       },
     ],
     2: [
       {
         type: "qcm",
-        q: "Comment s'écrit le bébé dinosaure ?",
-        options: ["un euf", "un œuf", "un oef"],
-        answer: "un œuf",
-        img: "🥒",
-      },
-      {
-        type: "qcm",
-        q: 'Quel mot veut dire "très grand" ?',
-        options: ["petit", "géant", "rapide"],
-        answer: "géant",
-        img: "🦖",
-      },
-      {
-        type: "qcm",
-        q: "Le T-Rex est un dinosaure...",
-        options: ["carnivore", "herbivore", "poisson"],
-        answer: "carnivore",
-        img: "🦴",
+        q: 'Quel est le contraire de "MONTER" ?',
+        options: ["COURIR", "DESCENDRE", "SAUTER", "VOLER"],
+        answer: "DESCENDRE",
+        img: "⬇️",
       },
       {
         type: "qcm",
         q: "Trouve le mot bien écrit :",
-        options: ["fusée", "fusé", "fuzée"],
-        answer: "fusée",
-        img: "🚀",
+        options: ["ÉLÉFANT", "ÉLÉPHANT", "ÉLEPHANT", "ELÉFANT"],
+        answer: "ÉLÉPHANT",
+        img: "🐘",
       },
       {
         type: "qcm",
-        q: "La lave sort du...",
-        options: ["volcan", "volquan", "volcant"],
-        answer: "volcan",
-        img: "🌋",
+        q: 'Quel est le féminin de "UN PRINCE" ?',
+        options: ["UNE PRINCE", "UNE PRINCESSE", "UNE PRINSE", "UNE PRINSESSE"],
+        answer: "UNE PRINCESSE",
+        img: "👸",
+      },
+      {
+        type: "qcm",
+        q: "Trouve le mot bien écrit :",
+        options: ["TOUJOUR", "TOUJOURS", "TOUJORS", "TOUJOURE"],
+        answer: "TOUJOURS",
+        img: "🕐",
+      },
+      {
+        type: "qcm",
+        q: "Quel animal peut voler et vit la nuit ?",
+        options: ["LA TORTUE", "LE SERPENT", "LA CHAUVE-SOURIS", "LE CRABE"],
+        answer: "LA CHAUVE-SOURIS",
+        img: "🦇",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: '"Le dinosaure mange des feuilles." Que mange-t-il ?',
-        options: ["de la viande", "des feuilles", "du poisson"],
-        answer: "des feuilles",
-        img: "🌿",
+        q: '"Le chat grimpe dans l\'arbre car le chien le poursuit." Pourquoi le chat grimpe-t-il ?',
+        options: [
+          "Il a faim",
+          "Le chien le poursuit",
+          "Il veut dormir",
+          "Il cherche un oiseau",
+        ],
+        answer: "Le chien le poursuit",
+        img: "🐱",
       },
       {
         type: "qcm",
-        q: '"La fusée décolle vers la Lune." Où va la fusée ?',
-        options: ["vers le Soleil", "vers la Lune", "vers Mars"],
-        answer: "vers la Lune",
-        img: "🌙",
+        q: '"Pierre a oublié son parapluie. En sortant, il est tout mouillé." Pourquoi est-il mouillé ?',
+        options: [
+          "Il a pris un bain",
+          "Il pleut dehors",
+          "Il a nagé",
+          "Il a bu de l'eau",
+        ],
+        answer: "Il pleut dehors",
+        img: "🌧️",
       },
       {
         type: "qcm",
-        q: '"Le volcan est en éruption, la lave coule." La lave...',
-        options: ["vole", "coule", "dort"],
-        answer: "coule",
-        img: "🌋",
+        q: '"Marie lit tous les soirs avant de dormir." Marie aime...',
+        options: ["dormir", "manger", "lire", "courir"],
+        answer: "lire",
+        img: "📖",
       },
       {
         type: "qcm",
-        q: 'Complète : "L\'astronaute porte une..."',
-        options: ["combinaison", "robe", "écharpe"],
-        answer: "combinaison",
-        img: "👨‍🚀",
+        q: '"Le boulanger se lève très tôt pour préparer le pain." Quand se lève-t-il ?',
+        options: ["À midi", "Très tôt le matin", "Le soir", "L'après-midi"],
+        answer: "Très tôt le matin",
+        img: "🥖",
       },
       {
         type: "qcm",
-        q: '"Les dinosaures ont disparu il y a très longtemps." Vrai ou Faux ?',
-        options: ["Vrai", "Faux"],
-        answer: "Vrai",
-        img: "🦕",
+        q: '"Les hirondelles partent en automne et reviennent au printemps." Ces oiseaux sont...',
+        options: ["nocturnes", "migrateurs", "marins", "domestiques"],
+        answer: "migrateurs",
+        img: "🐦",
       },
     ],
   },
@@ -241,112 +264,112 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "qcm",
-        q: "Compte les dinosaures : 🦕🦕🦕🦕🦕",
-        options: ["4", "5", "6"],
-        answer: "5",
-        img: "🦕",
-      },
-      {
-        type: "qcm",
-        q: "Compte les étoiles : ⭐⭐⭐⭐⭐⭐⭐",
-        options: ["6", "7", "8"],
-        answer: "7",
-        img: "⭐",
-      },
-      {
-        type: "qcm",
-        q: "Quel nombre vient après 15 ?",
-        options: ["14", "16", "17"],
-        answer: "16",
+        q: "Quel nombre vient juste après 39 ?",
+        options: ["38", "40", "41", "49"],
+        answer: "40",
         img: "🔢",
       },
       {
         type: "qcm",
-        q: "Quel nombre vient avant 20 ?",
-        options: ["19", "21", "18"],
-        answer: "19",
+        q: "Compte les fusées : 🚀🚀🚀🚀🚀🚀🚀🚀",
+        options: ["6", "7", "8", "9"],
+        answer: "8",
+        img: "🚀",
+      },
+      {
+        type: "qcm",
+        q: "Quel nombre vient juste avant 50 ?",
+        options: ["48", "49", "51", "40"],
+        answer: "49",
         img: "🔢",
       },
       {
         type: "qcm",
-        q: "Compte les volcans : 🌋🌋🌋🌋🌋🌋🌋🌋🌋",
-        options: ["8", "9", "10"],
-        answer: "9",
-        img: "🌋",
+        q: "Quel nombre est entre 36 et 38 ?",
+        options: ["35", "37", "39", "36"],
+        answer: "37",
+        img: "🎯",
+      },
+      {
+        type: "qcm",
+        q: "Compte de 5 en 5 : 15, 20, 25, ...",
+        options: ["26", "28", "30", "35"],
+        answer: "30",
+        img: "📊",
       },
     ],
     2: [
       {
         type: "qcm",
-        q: "🦕🦕🦕 + 🦕🦕 = ?",
-        options: ["4", "5", "6"],
-        answer: "5",
+        q: "14 + 9 = ?",
+        options: ["21", "22", "23", "25"],
+        answer: "23",
         img: "➕",
       },
       {
         type: "qcm",
-        q: "7 + 5 = ?",
-        options: ["11", "12", "13"],
-        answer: "12",
-        img: "🥚",
+        q: "25 - 8 = ?",
+        options: ["15", "17", "18", "33"],
+        answer: "17",
+        img: "➖",
       },
       {
         type: "qcm",
-        q: "🌋 Un volcan a 8 roches. Il en reçoit 4. Combien en a-t-il ?",
-        options: ["10", "11", "12"],
-        answer: "12",
-        img: "🪨",
+        q: "🎒 Un sac contient 18 billes. J'en ajoute 7. Combien y en a-t-il ?",
+        options: ["23", "24", "25", "26"],
+        answer: "25",
+        img: "🔵",
       },
       {
         type: "qcm",
-        q: "15 + 6 = ?",
-        options: ["20", "21", "22"],
-        answer: "21",
-        img: "⭐",
+        q: "32 - 15 = ?",
+        options: ["13", "17", "19", "23"],
+        answer: "17",
+        img: "➖",
       },
       {
         type: "qcm",
-        q: "🚀 9 + 9 = ?",
-        options: ["17", "18", "19"],
-        answer: "18",
-        img: "🚀",
+        q: "19 + 14 = ?",
+        options: ["31", "33", "35", "23"],
+        answer: "33",
+        img: "➕",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: "🦖 Le T-Rex a 12 dents. Il en perd 4. Combien lui en reste-t-il ?",
-        options: ["7", "8", "9"],
-        answer: "8",
-        img: "🦷",
+        q: "🧁 Papa a 42 gâteaux. Il en donne 16 le matin et 5 l'après-midi. Combien lui en reste-t-il ?",
+        options: ["19", "21", "23", "26"],
+        answer: "21",
+        img: "🧁",
       },
       {
         type: "qcm",
-        q: "45 est plus grand que...",
-        options: ["50", "42", "48"],
-        answer: "42",
-        img: "📊",
+        q: "56 - 29 = ?",
+        options: ["25", "27", "33", "37"],
+        answer: "27",
+        img: "🧮",
       },
       {
         type: "qcm",
-        q: "🌋 20 - 7 = ?",
-        options: ["12", "13", "14"],
-        answer: "13",
-        img: "🌋",
+        q: "👧👦 Dans la classe, il y a 13 filles et 15 garçons. Combien d'élèves en tout ?",
+        options: ["26", "27", "28", "30"],
+        answer: "28",
+        img: "🏫",
       },
       {
         type: "qcm",
-        q: "Range du plus petit au plus grand : 34, 28, 41",
-        options: ["28, 34, 41", "34, 28, 41", "41, 34, 28"],
-        answer: "28, 34, 41",
-        img: "📈",
+        q: "Quel est le double de 17 ?",
+        options: ["27", "34", "37", "24"],
+        answer: "34",
+        img: "✖️",
       },
       {
         type: "qcm",
-        q: "🚀 La fusée a 56 passagers. 10 descendent. Combien restent ?",
-        options: ["45", "46", "66"],
-        answer: "46",
-        img: "👨‍🚀",
+        q: "48 + 25 = ?",
+        options: ["63", "71", "73", "75"],
+        answer: "73",
+        img: "🚀",
       },
     ],
   },
@@ -354,112 +377,112 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "qcm",
-        q: "Quel jour vient après LUNDI ?",
-        options: ["Mercredi", "Mardi", "Dimanche"],
-        answer: "Mardi",
+        q: "Quel jour vient après MERCREDI ?",
+        options: ["MARDI", "JEUDI", "VENDREDI", "LUNDI"],
+        answer: "JEUDI",
         img: "📅",
       },
       {
         type: "qcm",
-        q: "En quelle saison fait-il très froid ?",
-        options: ["Été", "Hiver", "Printemps"],
-        answer: "Hiver",
-        img: "❄️",
-      },
-      {
-        type: "qcm",
-        q: "Combien y a-t-il de jours dans une semaine ?",
-        options: ["5", "6", "7"],
-        answer: "7",
+        q: "Combien y a-t-il de mois dans une année ?",
+        options: ["10", "11", "12", "13"],
+        answer: "12",
         img: "📆",
       },
       {
         type: "qcm",
-        q: "Quelle saison vient après le printemps ?",
-        options: ["Hiver", "Automne", "Été"],
-        answer: "Été",
+        q: "Quelle saison vient après l'été ?",
+        options: ["Le printemps", "L'automne", "L'hiver", "L'été"],
+        answer: "L'automne",
+        img: "🍂",
+      },
+      {
+        type: "qcm",
+        q: "Quel mois vient après JUIN ?",
+        options: ["MAI", "JUILLET", "AOÛT", "MARS"],
+        answer: "JUILLET",
         img: "☀️",
       },
       {
         type: "qcm",
-        q: "Quel est le premier mois de l'année ?",
-        options: ["Mars", "Janvier", "Décembre"],
-        answer: "Janvier",
-        img: "🎉",
+        q: "Quel jour est entre MARDI et JEUDI ?",
+        options: ["LUNDI", "MERCREDI", "VENDREDI", "SAMEDI"],
+        answer: "MERCREDI",
+        img: "📅",
       },
     ],
     2: [
       {
         type: "qcm",
-        q: "Quelle est la planète la plus proche du Soleil ?",
-        options: ["Terre", "Mars", "Mercure"],
-        answer: "Mercure",
-        img: "☀️",
+        q: "Combien de pattes a une araignée ?",
+        options: ["6", "8", "10", "12"],
+        answer: "8",
+        img: "🕷️",
       },
       {
         type: "qcm",
-        q: "Un dinosaure est-il vivant ou non-vivant ?",
-        options: ["Vivant (autrefois)", "Non-vivant", "Robot"],
-        answer: "Vivant (autrefois)",
-        img: "🦕",
+        q: 'Quelle planète est surnommée "la planète rouge" ?',
+        options: ["Vénus", "Mars", "Jupiter", "Saturne"],
+        answer: "Mars",
+        img: "🔴",
       },
       {
         type: "qcm",
-        q: "La Terre est une...",
-        options: ["Étoile", "Planète", "Lune"],
-        answer: "Planète",
-        img: "🌍",
+        q: "Que fabrique une abeille ?",
+        options: ["Du lait", "Du miel", "De la confiture", "Du sucre"],
+        answer: "Du miel",
+        img: "🐝",
       },
       {
         type: "qcm",
-        q: "Un volcan est fait de...",
-        options: ["Glace", "Roche", "Papier"],
-        answer: "Roche",
-        img: "🌋",
+        q: "Que produit un pommier ?",
+        options: ["Des poires", "Des pommes", "Des cerises", "Des noix"],
+        answer: "Des pommes",
+        img: "🍎",
       },
       {
         type: "qcm",
-        q: "Les plantes ont besoin de... pour vivre",
-        options: ["Eau et lumière", "Chocolat", "Jouets"],
-        answer: "Eau et lumière",
-        img: "🌱",
+        q: "Comment s'appelle le bébé de la vache ?",
+        options: ["Le poulain", "Le veau", "L'agneau", "Le porcelet"],
+        answer: "Le veau",
+        img: "🐮",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: "Avec quoi respire-t-on ?",
-        options: ["Les poumons", "Le cœur", "L'estomac"],
-        answer: "Les poumons",
-        img: "🫁",
-      },
-      {
-        type: "qcm",
-        q: "Que devient la chenille ?",
-        options: ["Un oiseau", "Un papillon", "Un poisson"],
-        answer: "Un papillon",
-        img: "🦋",
-      },
-      {
-        type: "qcm",
-        q: "Les dinosaures ont disparu à cause...",
-        options: ["d'une météorite", "d'un rhume", "de la pluie"],
-        answer: "d'une météorite",
-        img: "☄️",
-      },
-      {
-        type: "qcm",
-        q: "Le cœur sert à...",
-        options: ["digérer", "pomper le sang", "respirer"],
-        answer: "pomper le sang",
+        q: "Quel organe pompe le sang dans le corps ?",
+        options: ["Le cerveau", "Le cœur", "Les poumons", "L'estomac"],
+        answer: "Le cœur",
         img: "❤️",
       },
       {
         type: "qcm",
-        q: "Un herbivore mange...",
-        options: ["de la viande", "des plantes", "du plastique"],
-        answer: "des plantes",
-        img: "🥬",
+        q: "Quand l'eau gèle, elle se transforme en...",
+        options: ["Vapeur", "Glace", "Pluie", "Boue"],
+        answer: "Glace",
+        img: "🧊",
+      },
+      {
+        type: "qcm",
+        q: "Quel animal pond des œufs et a des plumes ?",
+        options: ["Le chat", "La poule", "Le lapin", "Le chien"],
+        answer: "La poule",
+        img: "🐔",
+      },
+      {
+        type: "qcm",
+        q: "La Lune tourne autour de...",
+        options: ["Le Soleil", "La Terre", "Mars", "Jupiter"],
+        answer: "La Terre",
+        img: "🌙",
+      },
+      {
+        type: "qcm",
+        q: "La grenouille vit dans l'eau et sur terre. On dit qu'elle est...",
+        options: ["Un mammifère", "Un amphibien", "Un reptile", "Un insecte"],
+        answer: "Un amphibien",
+        img: "🐸",
       },
     ],
   },
@@ -467,111 +490,111 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "qcm",
-        q: "Quelle forme a 3 côtés ?",
-        options: ["Carré", "Triangle", "Cercle"],
-        answer: "Triangle",
-        img: "🔺",
+        q: "Combien de côtés a un rectangle ?",
+        options: ["3", "4", "5", "6"],
+        answer: "4",
+        img: "🟦",
       },
       {
         type: "qcm",
-        q: "De quelle couleur est le Soleil ?",
-        options: ["Bleu", "Jaune", "Vert"],
-        answer: "Jaune",
-        img: "☀️",
-      },
-      {
-        type: "qcm",
-        q: "Quelle forme a 4 côtés égaux ?",
-        options: ["Triangle", "Carré", "Cercle"],
-        answer: "Carré",
-        img: "🟧",
-      },
-      {
-        type: "qcm",
-        q: "Bleu + Jaune = ?",
-        options: ["Rouge", "Vert", "Orange"],
-        answer: "Vert",
+        q: "Rouge + Jaune = ?",
+        options: ["Vert", "Violet", "Orange", "Marron"],
+        answer: "Orange",
         img: "🎨",
       },
       {
         type: "qcm",
-        q: "Quelle forme n'a pas de côté ?",
-        options: ["Rectangle", "Triangle", "Cercle"],
-        answer: "Cercle",
-        img: "⭕",
-      },
-    ],
-    2: [
-      {
-        type: "qcm",
-        q: "🦕 Le dino regarde vers la droite. Où est sa queue ?",
-        options: ["À droite", "À gauche", "En haut"],
-        answer: "À gauche",
-        img: "🦕",
+        q: "Quelle forme ressemble à un ballon ?",
+        options: ["Le carré", "Le cercle", "Le triangle", "Le rectangle"],
+        answer: "Le cercle",
+        img: "⚽",
       },
       {
         type: "qcm",
-        q: "Que vois-tu au-dessus des nuages ?",
-        options: ["La mer", "Le ciel/espace", "La terre"],
-        answer: "Le ciel/espace",
-        img: "☁️",
-      },
-      {
-        type: "qcm",
-        q: "Rouge + Bleu = ?",
-        options: ["Vert", "Violet", "Orange"],
+        q: "Bleu + Rouge = ?",
+        options: ["Vert", "Orange", "Violet", "Marron"],
         answer: "Violet",
         img: "🎨",
       },
       {
         type: "qcm",
-        q: "Combien de triangles ? 🔺🔺🔺🔺",
-        options: ["3", "4", "5"],
-        answer: "4",
-        img: "🔺",
+        q: "Combien de triangles faut-il pour faire un carré ?",
+        options: ["1", "2", "3", "4"],
+        answer: "2",
+        img: "📐",
+      },
+    ],
+    2: [
+      {
+        type: "qcm",
+        q: "Si tu te retournes, ta gauche devient...",
+        options: ["Ta droite", "Ta gauche", "Le haut", "Le bas"],
+        answer: "Ta droite",
+        img: "🔄",
       },
       {
         type: "qcm",
-        q: "La fusée décolle vers...",
-        options: ["le bas", "la gauche", "le haut"],
-        answer: "le haut",
-        img: "🚀",
+        q: "Jaune + Bleu + Rouge = ?",
+        options: ["Noir", "Blanc", "Marron", "Gris"],
+        answer: "Marron",
+        img: "🎨",
+      },
+      {
+        type: "qcm",
+        q: "Combien de faces a un dé ?",
+        options: ["4", "5", "6", "8"],
+        answer: "6",
+        img: "🎲",
+      },
+      {
+        type: "qcm",
+        q: "Quel objet a la forme d'une sphère ?",
+        options: ["Un livre", "Un ballon", "Une boîte", "Une feuille"],
+        answer: "Un ballon",
+        img: "🏀",
+      },
+      {
+        type: "qcm",
+        q: "Combien y a-t-il de couleurs dans l'arc-en-ciel ?",
+        options: ["5", "6", "7", "8"],
+        answer: "7",
+        img: "🌈",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: "Quelle suite est correcte ? 🔴🔵🔴🔵...",
-        options: ["🔴", "🔵", "🟢"],
-        answer: "🔴",
-        img: "🔴",
-      },
-      {
-        type: "qcm",
-        q: "Continue : 2, 4, 6, 8, ...",
-        options: ["9", "10", "11"],
-        answer: "10",
+        q: "Continue la suite : 3, 6, 9, 12, ...",
+        options: ["13", "14", "15", "16"],
+        answer: "15",
         img: "🔢",
       },
       {
         type: "qcm",
-        q: "🦕🌋🦕🌋🦕... Que vient ensuite ?",
-        options: ["🦕", "🌋", "🚀"],
-        answer: "🌋",
+        q: "🔴🔵🟢🔴🔵🟢🔴... Que vient ensuite ?",
+        options: ["🔴", "🔵", "🟢", "🟡"],
+        answer: "🔵",
         img: "❓",
       },
       {
         type: "qcm",
-        q: "Trouve l'intrus : 🔵🔵🔵🟢🔵",
-        options: ["🔵", "🟢"],
-        answer: "🟢",
+        q: "Trouve l'intrus : 🐱🐶🐰🌳🐹",
+        options: ["🐱", "🐶", "🌳", "🐹"],
+        answer: "🌳",
         img: "👀",
       },
       {
         type: "qcm",
-        q: "Continue : ⭐⭐🌙⭐⭐🌙⭐⭐...",
-        options: ["⭐", "🌙", "☀️"],
-        answer: "🌙",
+        q: "Continue : 1, 3, 5, 7, ...",
+        options: ["8", "9", "10", "11"],
+        answer: "9",
+        img: "📊",
+      },
+      {
+        type: "qcm",
+        q: "🔺🔺🔻🔺🔺🔻🔺🔺... Que vient ensuite ?",
+        options: ["🔺", "🔻", "🔵", "🟢"],
+        answer: "🔻",
         img: "✨",
       },
     ],
@@ -580,116 +603,142 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "qcm",
-        q: "Comment appelle-t-on les hommes qui vivaient dans des grottes ?",
-        options: ["Les chevaliers", "Les hommes préhistoriques", "Les rois"],
+        q: "Qui vivait il y a très longtemps, avant les villes ?",
+        options: [
+          "Les robots",
+          "Les hommes préhistoriques",
+          "Les astronautes",
+          "Les chevaliers",
+        ],
         answer: "Les hommes préhistoriques",
         img: "🏔️",
       },
       {
         type: "qcm",
-        q: "Quel animal les hommes préhistoriques chassaient-ils ?",
-        options: ["Le mammouth", "Le chat", "Le poisson rouge"],
+        q: "Comment les hommes préhistoriques gardaient-ils la chaleur ?",
+        options: [
+          "Avec un radiateur",
+          "Avec le feu",
+          "Avec l'électricité",
+          "Avec la clim",
+        ],
+        answer: "Avec le feu",
+        img: "🔥",
+      },
+      {
+        type: "qcm",
+        q: "Quel animal disparu avait de très longues défenses ?",
+        options: ["Le lion", "Le mammouth", "L'ours", "Le loup"],
         answer: "Le mammouth",
         img: "🦣",
       },
       {
         type: "qcm",
-        q: "Que portait un chevalier pour se protéger ?",
-        options: ["Un pyjama", "Une armure", "Un manteau"],
-        answer: "Une armure",
-        img: "🛡️",
+        q: "Les chevaliers vivaient-ils avant ou après les hommes préhistoriques ?",
+        options: ["Avant", "Après", "En même temps", "On ne sait pas"],
+        answer: "Après",
+        img: "⚔️",
       },
       {
         type: "qcm",
-        q: "Où vivaient les chevaliers ?",
-        options: ["Dans des igloos", "Dans des châteaux", "Dans des tentes"],
-        answer: "Dans des châteaux",
-        img: "🏰",
-      },
-      {
-        type: "qcm",
-        q: "Avec quoi les hommes préhistoriques faisaient-ils du feu ?",
-        options: ["Un briquet", "Des pierres", "Une allumette"],
-        answer: "Des pierres",
-        img: "🔥",
+        q: "Où les hommes préhistoriques dessinaient-ils des animaux ?",
+        options: [
+          "Dans des cahiers",
+          "Sur les murs des grottes",
+          "Sur du papier",
+          "Sur des tableaux",
+        ],
+        answer: "Sur les murs des grottes",
+        img: "🎨",
       },
     ],
     2: [
       {
         type: "qcm",
-        q: "Quel roi français était surnommé le Roi-Soleil ?",
-        options: ["Louis XIV", "Napoléon", "Charlemagne"],
+        q: "Qui a fait construire le château de Versailles ?",
+        options: ["Napoléon", "Louis XIV", "Charlemagne", "Henri IV"],
         answer: "Louis XIV",
         img: "👑",
       },
       {
         type: "qcm",
-        q: "Qui a inventé l'imprimerie ?",
-        options: ["Gutenberg", "Napoléon", "Jules César"],
-        answer: "Gutenberg",
-        img: "📖",
-      },
-      {
-        type: "qcm",
-        q: "Quel château est connu pour Louis XIV ?",
-        options: ["Versailles", "Disneyland", "La Tour Eiffel"],
-        answer: "Versailles",
-        img: "🏰",
-      },
-      {
-        type: "qcm",
-        q: "Qui était Jeanne d'Arc ?",
-        options: ["Une reine", "Une guerrière", "Une chanteuse"],
-        answer: "Une guerrière",
+        q: "Qui était la grande guerrière qui a aidé la France ?",
+        options: [
+          "Marie-Antoinette",
+          "Jeanne d'Arc",
+          "Cléopâtre",
+          "Blanche-Neige",
+        ],
+        answer: "Jeanne d'Arc",
         img: "⚔️",
       },
       {
         type: "qcm",
-        q: "Quelle invention permet de se déplacer sur deux roues ?",
-        options: ["La voiture", "Le vélo", "L'avion"],
-        answer: "Le vélo",
-        img: "🚲",
+        q: "Quel peuple a construit les pyramides ?",
+        options: ["Les Romains", "Les Égyptiens", "Les Gaulois", "Les Vikings"],
+        answer: "Les Égyptiens",
+        img: "🏛️",
+      },
+      {
+        type: "qcm",
+        q: "Comment s'appelle le grand guerrier gaulois ?",
+        options: ["Astérix", "Vercingétorix", "Obélix", "Jules César"],
+        answer: "Vercingétorix",
+        img: "🛡️",
+      },
+      {
+        type: "qcm",
+        q: "Qui a découvert l'Amérique en 1492 ?",
+        options: ["Marco Polo", "Christophe Colomb", "Magellan", "Napoléon"],
+        answer: "Christophe Colomb",
+        img: "🚢",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: "En quelle année a eu lieu la Révolution française ?",
-        options: ["1789", "1515", "1900"],
-        answer: "1789",
+        q: "En quelle année la Tour Eiffel a-t-elle été construite ?",
+        options: ["1789", "1889", "1914", "1969"],
+        answer: "1889",
+        img: "🗼",
+      },
+      {
+        type: "qcm",
+        q: "Quel événement a commencé le 14 juillet 1789 ?",
+        options: [
+          "La Première Guerre",
+          "La Révolution française",
+          "La fête de la musique",
+          "Les Jeux Olympiques",
+        ],
+        answer: "La Révolution française",
         img: "🇫🇷",
       },
       {
         type: "qcm",
-        q: "Quel monument a été construit pour la Révolution ?",
-        options: ["La Tour Eiffel", "L'Arc de Triomphe", "La Bastille"],
-        answer: "La Bastille",
-        img: "🏛️",
-      },
-      {
-        type: "qcm",
-        q: "Qui était Napoléon Bonaparte ?",
-        options: ["Un empereur", "Un peintre", "Un explorateur"],
-        answer: "Un empereur",
+        q: "Quel célèbre Français était un empereur ?",
+        options: [
+          "Louis XIV",
+          "Napoléon Bonaparte",
+          "Charlemagne",
+          "Vercingétorix",
+        ],
+        answer: "Napoléon Bonaparte",
         img: "👑",
       },
       {
         type: "qcm",
-        q: "La Première Guerre mondiale a commencé en...",
-        options: ["1914", "1789", "2000"],
+        q: "Quand la Première Guerre mondiale a-t-elle commencé ?",
+        options: ["1789", "1889", "1914", "1945"],
         answer: "1914",
         img: "📜",
       },
       {
         type: "qcm",
-        q: "Quel événement a marqué le XXe siècle en France ?",
-        options: [
-          "La construction de la Tour Eiffel",
-          "Les deux guerres mondiales",
-          "La découverte de l'Amérique",
-        ],
-        answer: "Les deux guerres mondiales",
-        img: "🕊️",
+        q: "La fête nationale française est le...",
+        options: ["1er janvier", "14 juillet", "25 décembre", "11 novembre"],
+        answer: "14 juillet",
+        img: "🎆",
       },
     ],
   },
@@ -698,9 +747,16 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
       {
         type: "qcm",
         q: "Quelle est la capitale de la France ?",
-        options: ["Lyon", "Paris", "Marseille"],
+        options: ["Lyon", "Paris", "Marseille", "Bordeaux"],
         answer: "Paris",
         img: "🗼",
+      },
+      {
+        type: "qcm",
+        q: "Sur quel continent se trouve la France ?",
+        options: ["L'Asie", "L'Europe", "L'Afrique", "L'Amérique"],
+        answer: "L'Europe",
+        img: "🌍",
       },
       {
         type: "qcm",
@@ -709,28 +765,27 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
           "Bleu, blanc, rouge",
           "Vert, blanc, rouge",
           "Bleu, jaune, rouge",
+          "Noir, blanc, rouge",
         ],
         answer: "Bleu, blanc, rouge",
         img: "🇫🇷",
       },
       {
         type: "qcm",
-        q: "Quelle est la plus grande ville de France ?",
-        options: ["Toulouse", "Paris", "Nice"],
-        answer: "Paris",
-        img: "🏙️",
+        q: "Comment appelle-t-on la forme de la France ?",
+        options: ["Le triangle", "L'hexagone", "Le carré", "Le rectangle"],
+        answer: "L'hexagone",
+        img: "🗺️",
       },
       {
         type: "qcm",
-        q: "La France est en...",
-        options: ["Afrique", "Asie", "Europe"],
-        answer: "Europe",
-        img: "🌍",
-      },
-      {
-        type: "qcm",
-        q: "Quel monument célèbre se trouve à Paris ?",
-        options: ["La Tour Eiffel", "Big Ben", "La Statue de la Liberté"],
+        q: "Quel monument est le symbole de Paris ?",
+        options: [
+          "La Tour Eiffel",
+          "Big Ben",
+          "La Statue de la Liberté",
+          "Le Colisée",
+        ],
         answer: "La Tour Eiffel",
         img: "🗼",
       },
@@ -739,74 +794,94 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
       {
         type: "qcm",
         q: "Quel est le plus long fleuve de France ?",
-        options: ["La Seine", "La Loire", "Le Rhône"],
+        options: ["La Seine", "La Loire", "Le Rhône", "La Garonne"],
         answer: "La Loire",
         img: "🏞️",
       },
       {
         type: "qcm",
         q: "Quelle est la plus haute montagne de France ?",
-        options: ["Le Mont Blanc", "Le Puy de Dôme", "Le Mont Ventoux"],
+        options: [
+          "Le Mont Blanc",
+          "Le Puy de Dôme",
+          "Le Mont Ventoux",
+          "Les Vosges",
+        ],
         answer: "Le Mont Blanc",
         img: "🏔️",
       },
       {
         type: "qcm",
-        q: "Quelle mer borde le sud de la France ?",
-        options: ["La mer du Nord", "La Méditerranée", "L'océan Atlantique"],
+        q: "Quelle mer se trouve au sud de la France ?",
+        options: [
+          "La mer du Nord",
+          "La Méditerranée",
+          "La Manche",
+          "L'océan Pacifique",
+        ],
         answer: "La Méditerranée",
         img: "🌊",
       },
       {
         type: "qcm",
-        q: "Combien de régions y a-t-il en France métropolitaine ?",
-        options: ["10", "13", "20"],
-        answer: "13",
+        q: "Quel pays est au nord de la France ?",
+        options: ["L'Espagne", "La Belgique", "L'Italie", "Le Portugal"],
+        answer: "La Belgique",
         img: "🗺️",
       },
       {
         type: "qcm",
-        q: "Quelle chaîne de montagnes sépare la France de l'Espagne ?",
-        options: ["Les Alpes", "Les Pyrénées", "Le Jura"],
-        answer: "Les Pyrénées",
-        img: "⛰️",
+        q: "Quel fleuve traverse Paris ?",
+        options: ["La Loire", "La Seine", "Le Rhône", "La Garonne"],
+        answer: "La Seine",
+        img: "🌉",
       },
     ],
     3: [
       {
         type: "qcm",
-        q: "Quel département français est une île dans l'océan Indien ?",
-        options: ["La Guadeloupe", "La Réunion", "La Martinique"],
+        q: "Quelle île française est dans l'océan Indien ?",
+        options: ["La Guadeloupe", "La Réunion", "La Corse", "La Martinique"],
         answer: "La Réunion",
         img: "🏝️",
       },
       {
         type: "qcm",
-        q: "Quel pays ne partage PAS de frontière avec la France ?",
-        options: ["L'Espagne", "La Pologne", "L'Italie"],
-        answer: "La Pologne",
+        q: "Combien de pays partagent une frontière avec la France ?",
+        options: ["5", "6", "8", "10"],
+        answer: "8",
         img: "🗺️",
       },
       {
         type: "qcm",
-        q: "Quel océan borde l'ouest de la France ?",
-        options: ["L'océan Pacifique", "L'océan Atlantique", "L'océan Indien"],
+        q: "Quelle chaîne de montagnes sépare la France de l'Italie ?",
+        options: ["Les Alpes", "Les Pyrénées", "Le Jura", "Les Vosges"],
+        answer: "Les Alpes",
+        img: "⛰️",
+      },
+      {
+        type: "qcm",
+        q: "Quel océan borde la côte ouest de la France ?",
+        options: [
+          "L'océan Pacifique",
+          "L'océan Atlantique",
+          "L'océan Indien",
+          "L'océan Arctique",
+        ],
         answer: "L'océan Atlantique",
         img: "🌊",
       },
       {
         type: "qcm",
-        q: "La Corse est...",
-        options: ["Un pays", "Une île française", "Une montagne"],
-        answer: "Une île française",
+        q: "La Corse se trouve dans quelle mer ?",
+        options: [
+          "La mer du Nord",
+          "La Méditerranée",
+          "La Manche",
+          "L'océan Atlantique",
+        ],
+        answer: "La Méditerranée",
         img: "🏝️",
-      },
-      {
-        type: "qcm",
-        q: "Quel fleuve traverse Paris ?",
-        options: ["La Loire", "Le Rhône", "La Seine"],
-        answer: "La Seine",
-        img: "🌉",
       },
     ],
   },
@@ -814,112 +889,112 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "completion",
-        q: "ch_t",
+        q: "écu_euil",
         options: [],
-        answer: "a",
-        img: "🐱",
+        answer: "r",
+        img: "🐿️",
       },
       {
         type: "completion",
-        q: "l__p",
+        q: "gi_afe",
         options: [],
-        answer: "ou",
-        img: "🐺",
+        answer: "r",
+        img: "🦒",
       },
       {
         type: "completion",
-        q: "o_rs",
+        q: "tor_ue",
         options: [],
-        answer: "u",
-        img: "🐻",
+        answer: "t",
+        img: "🐢",
       },
       {
         type: "completion",
-        q: "poi_son",
+        q: "co_uille",
         options: [],
-        answer: "s",
-        img: "🐟",
+        answer: "q",
+        img: "🐚",
       },
       {
         type: "completion",
-        q: "la_in",
+        q: "p_rroquet",
         options: [],
-        answer: "p",
-        img: "🐰",
+        answer: "e",
+        img: "🦜",
       },
     ],
     2: [
       {
         type: "completion",
-        q: "m__son",
+        q: "ch__ette",
+        options: [],
+        answer: "ou",
+        img: "🦉",
+      },
+      {
+        type: "completion",
+        q: "p_p_llon",
         options: [],
         answer: "ai",
-        img: "🏠",
+        img: "🦋",
       },
       {
         type: "completion",
-        q: "pant_l_n",
+        q: "c_c_nelle",
         options: [],
-        answer: "ao",
-        img: "👖",
+        answer: "oi",
+        img: "🐞",
       },
       {
         type: "completion",
-        q: "b_l_nce",
+        q: "h_r_sson",
         options: [],
-        answer: "aa",
-        img: "⚖️",
+        answer: "éi",
+        img: "🦔",
       },
       {
         type: "completion",
-        q: "c_ch_n",
+        q: "t_ur_esol",
         options: [],
-        answer: "oo",
-        img: "🐷",
-      },
-      {
-        type: "completion",
-        q: "m_nt_gne",
-        options: [],
-        answer: "oa",
-        img: "⛰️",
+        answer: "on",
+        img: "🌻",
       },
     ],
     3: [
       {
         type: "completion",
-        q: "papi_lon",
+        q: "rhin_céros",
         options: [],
-        answer: "l",
-        img: "🦋",
+        answer: "o",
+        img: "🦏",
       },
       {
         type: "completion",
-        q: "cha_eau",
+        q: "ch_mp_gnon",
         options: [],
-        answer: "p",
-        img: "🎩",
+        answer: "ai",
+        img: "🍄",
       },
       {
         type: "completion",
-        q: "bi_ycl_tte",
+        q: "b_cycl_tte",
         options: [],
-        answer: "ce",
+        answer: "ie",
         img: "🚲",
       },
       {
         type: "completion",
-        q: "él_ph_nt",
+        q: "mar_uerit_",
         options: [],
-        answer: "éa",
-        img: "🐘",
+        answer: "ge",
+        img: "🌼",
       },
       {
         type: "completion",
-        q: "cr_cod_le",
+        q: "s_uter_lle",
         options: [],
-        answer: "oi",
-        img: "🐊",
+        answer: "ae",
+        img: "🦗",
       },
     ],
   },
@@ -927,116 +1002,118 @@ const EXERCISES: Record<IslandId, Record<number, Exercise[]>> = {
     1: [
       {
         type: "blague",
-        q: "Que dit un escargot quand il croise une limace ?",
+        q: "Que dit un escargot sur le dos d'une tortue ?",
         options: [],
-        answer: "Oh la belle décapotable !",
+        answer: "Youhou, ça décoiffe !",
         img: "🐌",
       },
       {
         type: "blague",
-        q: "Pourquoi les plongeurs plongent-ils toujours en arrière ?",
+        q: "Pourquoi les girafes ont-elles un long cou ?",
         options: [],
-        answer: "Parce que sinon ils tomberaient dans le bateau !",
-        img: "🤿",
+        answer: "Parce que leurs pieds sentent mauvais !",
+        img: "🦒",
       },
       {
         type: "blague",
-        q: "Quel est le comble pour un électricien ?",
+        q: "Que dit une maman tomate à un bébé tomate qui traîne ?",
         options: [],
-        answer: "De ne pas être au courant !",
-        img: "💡",
+        answer: "Allez, ketchup !",
+        img: "🍅",
       },
       {
         type: "blague",
-        q: "Que fait un crocodile quand il rencontre une belle fille ?",
+        q: "Pourquoi les vaches ferment-elles les yeux en donnant du lait ?",
         options: [],
-        answer: "Il Lacoste !",
+        answer: "Pour faire du lait concentré !",
+        img: "🐄",
+      },
+      {
+        type: "blague",
+        q: "Qu'est-ce qu'un crocodile qui surveille la cour d'école ?",
+        options: [],
+        answer: "Un sur-veillant !",
         img: "🐊",
-      },
-      {
-        type: "blague",
-        q: "Pourquoi le livre de maths est-il triste ?",
-        options: [],
-        answer: "Parce qu'il a trop de problèmes !",
-        img: "📚",
       },
     ],
     2: [
       {
         type: "blague",
-        q: "Qu'est-ce qu'un canif ?",
+        q: "Que dit un zéro à un huit ?",
         options: [],
-        answer: "Un petit fien !",
-        img: "🐕",
+        answer: "Jolie ceinture !",
+        img: "🔢",
       },
       {
         type: "blague",
-        q: "Quel est le sport le plus fruité ?",
+        q: "Comment appelle-t-on un boomerang qui ne revient pas ?",
         options: [],
-        answer: "La boxe, parce qu'on se prend des pêches et des prunes !",
-        img: "🥊",
+        answer: "Un bout de bois !",
+        img: "🪃",
       },
       {
         type: "blague",
-        q: "Que dit une fraise le jour de la Saint-Valentin ?",
+        q: "Pourquoi les éléphants ne font-ils pas d'ordinateur ?",
         options: [],
-        answer: "Je t'aime à la folie, ma petite Charlotte !",
-        img: "🍓",
+        answer: "Parce qu'ils ont peur de la souris !",
+        img: "🐘",
       },
       {
         type: "blague",
-        q: "Pourquoi les fantômes sont-ils de mauvais menteurs ?",
+        q: "Quel est le fruit le plus explosif ?",
         options: [],
-        answer: "Parce qu'on voit à travers !",
-        img: "👻",
+        answer: "La grenade !",
+        img: "💥",
       },
       {
         type: "blague",
-        q: "Quel est le comble pour un jardinier ?",
+        q: "Quel est le sport préféré des insectes ?",
         options: [],
-        answer: "De raconter des salades !",
-        img: "🥬",
+        answer: "Le cricket !",
+        img: "🦗",
       },
     ],
     3: [
       {
         type: "blague",
-        q: "Que dit un hibou quand il joue à cache-cache ?",
+        q: "Pourquoi le robot va-t-il chez le docteur ?",
         options: [],
-        answer: "Chouette, je suis bien caché !",
-        img: "🦉",
+        answer: "Parce qu'il a un virus !",
+        img: "🤖",
       },
       {
         type: "blague",
-        q: "Pourquoi les poissons n'aiment pas l'ordinateur ?",
+        q: "Quel est le comble pour un astronaute ?",
         options: [],
-        answer: "Parce qu'ils ont peur du net !",
-        img: "🐟",
+        answer: "D'en avoir plein le dos de la Lune !",
+        img: "🧑‍🚀",
       },
       {
         type: "blague",
-        q: "Quel est le comble pour une horloge ?",
+        q: "Que dit un citron qui fait un hold-up ?",
         options: [],
-        answer: "D'en avoir ras-le-bol de tourner en rond !",
-        img: "🕐",
+        answer: "Plus un zeste !",
+        img: "🍋",
       },
       {
         type: "blague",
-        q: "Comment appelle-t-on un chat tombé dans un pot de peinture le jour de Noël ?",
+        q: "Pourquoi les montres sont-elles mauvaises au foot ?",
         options: [],
-        answer: "Un chat-peint de Noël !",
-        img: "🐱",
+        answer: "Parce qu'elles jouent les prolongations !",
+        img: "⏰",
       },
       {
         type: "blague",
-        q: "Que se disent deux bougies qui se rencontrent ?",
+        q: "Comment appelle-t-on un chat qui fait de la musique ?",
         options: [],
-        answer: "On sort ce soir ? Oui, c'est la fête !",
-        img: "🕯️",
+        answer: "Un chat-nteur !",
+        img: "🎵",
       },
     ],
   },
 };
+
+const CONFETTI_EMOJIS = ["⭐", "🎉", "✨", "🌟", "💫", "🎊"];
 
 export default function App() {
   const [progress, setProgress] = useState<Progress>(INITIAL_PROGRESS);
@@ -1050,6 +1127,79 @@ export default function App() {
   const [levelComplete, setLevelComplete] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [jokeRevealed, setJokeRevealed] = useState(false);
+
+  // New UX state
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [questionOrder, setQuestionOrder] = useState<number[]>([]);
+  const [shuffledOpts, setShuffledOpts] = useState<string[]>([]);
+  const [timeLeft, setTimeLeft] = useState(-1);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const streakRef = useRef(0);
+  const feedbackRef = useRef<"correct" | "incorrect" | null>(null);
+
+  // Get real exercise index from shuffled order
+  const getRealIndex = (idx: number) =>
+    questionOrder.length > 0 ? questionOrder[idx] : idx;
+
+  // Shuffle options when question changes
+  useEffect(() => {
+    if (screen === "exercise" && currentIsland) {
+      const exercises = EXERCISES[currentIsland][currentLevel];
+      const realIdx = getRealIndex(exerciseIndex);
+      const exercise = exercises[realIdx];
+      if (exercise && exercise.options.length > 0) {
+        setShuffledOpts(shuffle(exercise.options));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, exerciseIndex, currentIsland, currentLevel, questionOrder]);
+
+  // Reset timer when question changes
+  useEffect(() => {
+    if (screen !== "exercise" || !currentIsland) return;
+    const exercises = EXERCISES[currentIsland][currentLevel];
+    const realIdx = getRealIndex(exerciseIndex);
+    if (!exercises[realIdx]) return;
+    const exercise = exercises[realIdx];
+
+    if (exercise.type === "blague") {
+      setTimeLeft(-1);
+    } else if (exercise.type === "completion") {
+      setTimeLeft(TIMER_COMPLETION[currentLevel] || 30);
+    } else {
+      setTimeLeft(TIMER_QCM[currentLevel] || 20);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseIndex, screen, currentIsland, currentLevel]);
+
+  // Countdown
+  useEffect(() => {
+    if (
+      timeLeft <= 0 ||
+      feedbackRef.current ||
+      levelComplete ||
+      screen !== "exercise"
+    )
+      return;
+    const timer = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [timeLeft, levelComplete, screen]);
+
+  // Handle time up
+  useEffect(() => {
+    if (
+      timeLeft === 0 &&
+      screen === "exercise" &&
+      !feedbackRef.current &&
+      !levelComplete
+    ) {
+      addStarAndAdvance(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft]);
 
   const selectAvatar = (avatar: Avatar) => {
     setProgress((p) => ({ ...p, avatar }));
@@ -1067,17 +1217,37 @@ export default function App() {
     setCurrentLevel(level);
     setExerciseIndex(0);
     setFeedback(null);
+    feedbackRef.current = null;
     setLevelComplete(false);
     setTextInput("");
     setJokeRevealed(false);
+    setStreak(0);
+    streakRef.current = 0;
+    setBestStreak(0);
+    setCorrectCount(0);
+    setShowConfetti(false);
+
+    const exercises = EXERCISES[currentIsland][level];
+    setQuestionOrder(
+      shuffle(Array.from({ length: exercises.length }, (_, i) => i)),
+    );
     setScreen("exercise");
   };
 
   const addStarAndAdvance = (correct: boolean) => {
     if (!currentIsland) return;
+    if (feedbackRef.current) return;
+
     const exercises = EXERCISES[currentIsland][currentLevel];
 
     if (correct) {
+      streakRef.current += 1;
+      setStreak(streakRef.current);
+      setBestStreak((b) => Math.max(b, streakRef.current));
+      setCorrectCount((c) => c + 1);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 1200);
+
       setProgress((p) => {
         const newStars = [...p[currentIsland].stars];
         newStars[currentLevel - 1] += 1;
@@ -1087,12 +1257,17 @@ export default function App() {
           [currentIsland]: { ...p[currentIsland], stars: newStars },
         };
       });
+    } else {
+      streakRef.current = 0;
+      setStreak(0);
     }
 
     setFeedback(correct ? "correct" : "incorrect");
+    feedbackRef.current = correct ? "correct" : "incorrect";
 
     setTimeout(() => {
       setFeedback(null);
+      feedbackRef.current = null;
       setTextInput("");
       if (exerciseIndex < exercises.length - 1) {
         setExerciseIndex((i) => i + 1);
@@ -1118,15 +1293,17 @@ export default function App() {
   const checkAnswer = (answer: string) => {
     if (!currentIsland) return;
     const exercises = EXERCISES[currentIsland][currentLevel];
-    const correct = exercises[exerciseIndex].answer === answer;
+    const realIdx = getRealIndex(exerciseIndex);
+    const correct = exercises[realIdx].answer === answer;
     addStarAndAdvance(correct);
   };
 
   const checkCompletion = () => {
     if (!currentIsland) return;
     const exercises = EXERCISES[currentIsland][currentLevel];
+    const realIdx = getRealIndex(exerciseIndex);
     const correct =
-      textInput.toLowerCase() === exercises[exerciseIndex].answer.toLowerCase();
+      textInput.toLowerCase() === exercises[realIdx].answer.toLowerCase();
     addStarAndAdvance(correct);
   };
 
@@ -1134,7 +1311,6 @@ export default function App() {
     if (!currentIsland) return;
     const exercises = EXERCISES[currentIsland][currentLevel];
 
-    // Always award a star for jokes
     setProgress((p) => {
       const newStars = [...p[currentIsland].stars];
       newStars[currentLevel - 1] += 1;
@@ -1170,22 +1346,27 @@ export default function App() {
     setScreen("avatar");
   };
 
+  // === RENDER ===
+
   // Avatar Selection Screen
   if (screen === "avatar") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-900 flex flex-col items-center justify-center p-4">
-        <div className="text-center mb-8">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-purple-950 flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-8 animate-slide-in">
           <h1 className="text-3xl font-bold text-white mb-2">
-            🦕 L'Aventure des Explorateurs 🚀
+            🦊 L'Aventure des Explorateurs 🐉
           </h1>
-          <p className="text-purple-200">Choisis ton avatar pour commencer !</p>
+          <p className="text-indigo-300">
+            Choisis ton compagnon pour commencer !
+          </p>
         </div>
-        <div className="flex gap-4 flex-wrap justify-center">
-          {AVATARS.map((av) => (
+        <div className="grid grid-cols-2 gap-4 max-w-sm w-full">
+          {AVATARS.map((av, i) => (
             <button
               key={av.id}
               onClick={() => selectAvatar(av)}
-              className="bg-white/20 hover:bg-white/30 rounded-2xl p-6 transition-all hover:scale-110 backdrop-blur"
+              className="bg-white/10 hover:bg-white/20 rounded-2xl p-6 transition-all hover:scale-110 backdrop-blur border border-white/10 hover:border-white/30 animate-slide-in"
+              style={{ animationDelay: `${i * 0.1}s` }}
             >
               <div className="text-6xl mb-2">{av.emoji}</div>
               <div className="text-white font-medium">{av.name}</div>
@@ -1199,24 +1380,24 @@ export default function App() {
   // Map Screen
   if (screen === "map") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-emerald-400 p-4">
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-sky-900 to-emerald-900 p-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="bg-white/90 rounded-2xl p-4 mb-6 flex items-center justify-between backdrop-blur">
+          <div className="bg-white/10 rounded-2xl p-4 mb-6 flex items-center justify-between backdrop-blur border border-white/10">
             <div className="flex items-center gap-3">
               <span className="text-4xl">{progress.avatar?.emoji}</span>
               <div>
-                <div className="font-bold text-gray-800">
+                <div className="font-bold text-white">
                   {progress.avatar?.name}
                 </div>
-                <div className="text-sm text-gray-600">
-                  Explorateur en herbe
+                <div className="text-sm text-indigo-300">
+                  Explorateur intrépide
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full">
+            <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-full border border-yellow-500/30">
               <span className="text-2xl">⭐</span>
-              <span className="font-bold text-yellow-700">
+              <span className="font-bold text-yellow-300">
                 {progress.stars}
               </span>
             </div>
@@ -1228,7 +1409,7 @@ export default function App() {
 
           {/* Islands */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {ISLANDS.map((island) => {
+            {ISLANDS.map((island, i) => {
               const islandProgress = progress[island.id];
               const totalStars = islandProgress.stars.reduce(
                 (a: number, b: number) => a + b,
@@ -1238,16 +1419,17 @@ export default function App() {
                 <button
                   key={island.id}
                   onClick={() => enterIsland(island.id)}
-                  className={`${island.color} hover:opacity-90 rounded-2xl p-4 text-white transition-all hover:scale-105 shadow-lg`}
+                  className={`${island.color} hover:opacity-90 rounded-2xl p-4 text-white transition-all hover:scale-105 shadow-lg animate-slide-in border border-white/10`}
+                  style={{ animationDelay: `${i * 0.05}s` }}
                 >
                   <div className="text-4xl mb-2">{island.emoji}</div>
-                  <div className="font-bold text-lg">{island.name}</div>
-                  <div className="text-sm opacity-90">{island.desc}</div>
+                  <div className="font-bold text-sm">{island.name}</div>
+                  <div className="text-xs opacity-90">{island.desc}</div>
                   <div className="mt-2 flex justify-center gap-1">
                     {[1, 2, 3].map((lvl) => (
                       <span
                         key={lvl}
-                        className={`text-lg ${islandProgress.unlocked.includes(lvl) ? "" : "opacity-40"}`}
+                        className={`text-sm ${islandProgress.unlocked.includes(lvl) ? "" : "opacity-40"}`}
                       >
                         {islandProgress.unlocked.includes(lvl) ? "🔓" : "🔒"}
                       </span>
@@ -1263,7 +1445,7 @@ export default function App() {
 
           <button
             onClick={resetGame}
-            className="mt-6 mx-auto block text-white/70 hover:text-white text-sm underline"
+            className="mt-6 mx-auto block text-white/50 hover:text-white text-sm underline"
           >
             Recommencer l'aventure
           </button>
@@ -1279,19 +1461,21 @@ export default function App() {
     const islandProgress = progress[currentIsland];
 
     return (
-      <div className={`min-h-screen ${island.color} bg-opacity-80 p-4`}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 p-4">
         <div className="max-w-md mx-auto">
           <button
             onClick={() => setScreen("map")}
-            className="mb-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full backdrop-blur"
+            className="mb-4 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur border border-white/10"
           >
             ← Retour à la carte
           </button>
 
-          <div className="bg-white/90 rounded-2xl p-6 backdrop-blur text-center mb-6">
+          <div
+            className={`${island.color} rounded-2xl p-6 text-center mb-6 border border-white/10`}
+          >
             <div className="text-5xl mb-2">{island.emoji}</div>
-            <h2 className="text-2xl font-bold text-gray-800">{island.name}</h2>
-            <p className="text-gray-600">{island.desc}</p>
+            <h2 className="text-2xl font-bold text-white">{island.name}</h2>
+            <p className="text-white/80">{island.desc}</p>
           </div>
 
           <div className="space-y-4">
@@ -1303,24 +1487,25 @@ export default function App() {
                   key={level}
                   onClick={() => startLevel(level)}
                   disabled={!unlocked}
-                  className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${
+                  className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all animate-slide-in ${
                     unlocked
-                      ? "bg-white hover:bg-white/90 shadow-lg hover:scale-102"
-                      : "bg-white/30 cursor-not-allowed"
+                      ? "bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30"
+                      : "bg-white/5 cursor-not-allowed border border-white/5"
                   }`}
+                  style={{ animationDelay: `${level * 0.1}s` }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{unlocked ? "🎯" : "🔒"}</span>
                     <div className="text-left">
                       <div
-                        className={`font-bold ${unlocked ? "text-gray-800" : "text-gray-500"}`}
+                        className={`font-bold ${unlocked ? "text-white" : "text-gray-500"}`}
                       >
                         Niveau {level}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {level === 1 && "Facile"}
-                        {level === 2 && "Moyen"}
-                        {level === 3 && "Difficile"}
+                      <div className="text-sm text-gray-400">
+                        {level === 1 && "⏱️ 25s par question"}
+                        {level === 2 && "⏱️ 20s par question"}
+                        {level === 3 && "⏱️ 15s par question"}
                       </div>
                     </div>
                   </div>
@@ -1339,10 +1524,10 @@ export default function App() {
             })}
           </div>
 
-          <div className="mt-6 bg-white/80 rounded-xl p-4 text-center backdrop-blur">
-            <p className="text-sm text-gray-600">
-              🔓 Gagne <strong>3 étoiles</strong> pour débloquer le niveau
-              suivant !
+          <div className="mt-6 bg-white/10 rounded-xl p-4 text-center backdrop-blur border border-white/10">
+            <p className="text-sm text-gray-300">
+              🔓 Gagne <strong className="text-yellow-300">3 étoiles</strong>{" "}
+              pour débloquer le niveau suivant !
             </p>
           </div>
         </div>
@@ -1353,23 +1538,45 @@ export default function App() {
   // Exercise Screen
   if (screen === "exercise" && currentIsland) {
     const exercises = EXERCISES[currentIsland][currentLevel];
-    const exercise = exercises[exerciseIndex];
+    const realIdx = getRealIndex(exerciseIndex);
+    const exercise = exercises[realIdx];
     const island = ISLANDS.find((i) => i.id === currentIsland);
-    if (!island) return null;
+    if (!island || !exercise) return null;
+
+    // Timer calculations
+    const maxTime =
+      exercise.type === "completion"
+        ? TIMER_COMPLETION[currentLevel] || 30
+        : TIMER_QCM[currentLevel] || 20;
+    const timerPercent = timeLeft >= 0 ? (timeLeft / maxTime) * 100 : 100;
+    const timerColor =
+      timerPercent > 60
+        ? "bg-green-400"
+        : timerPercent > 30
+          ? "bg-yellow-400"
+          : "bg-red-400";
 
     if (levelComplete) {
       const stars = progress[currentIsland].stars[currentLevel - 1];
       const unlocked = stars >= 3 && currentLevel < 3;
 
       return (
-        <div
-          className={`min-h-screen ${island.color} flex items-center justify-center p-4`}
-        >
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
+          <div className="bg-white/10 backdrop-blur rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-white/10 animate-slide-in">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            <h2 className="text-2xl font-bold text-white mb-2">
               Niveau terminé !
             </h2>
+
+            <div className="bg-white/10 rounded-xl p-3 mb-4">
+              <p className="text-lg text-white">
+                Score :{" "}
+                <span className="font-bold text-yellow-300">
+                  {correctCount}/{exercises.length}
+                </span>
+              </p>
+            </div>
+
             <div className="flex justify-center gap-2 my-4">
               {[1, 2, 3, 4, 5].map((s) => (
                 <span
@@ -1380,12 +1587,15 @@ export default function App() {
                 </span>
               ))}
             </div>
-            <p className="text-gray-600 mb-4">
-              Tu as gagné {stars} étoile{stars > 1 ? "s" : ""} !
-            </p>
+
+            {bestStreak >= 2 && (
+              <div className="bg-orange-500/20 text-orange-300 p-3 rounded-xl mb-4 border border-orange-500/30">
+                🔥 Meilleur combo : {bestStreak} de suite !
+              </div>
+            )}
 
             {unlocked && (
-              <div className="bg-green-100 text-green-700 p-3 rounded-xl mb-4">
+              <div className="bg-green-500/20 text-green-300 p-3 rounded-xl mb-4 border border-green-500/30 animate-pulse-glow">
                 🔓 Niveau {currentLevel + 1} débloqué !
               </div>
             )}
@@ -1395,6 +1605,16 @@ export default function App() {
                 onClick={() => {
                   setExerciseIndex(0);
                   setLevelComplete(false);
+                  setCorrectCount(0);
+                  setStreak(0);
+                  streakRef.current = 0;
+                  setBestStreak(0);
+                  setShowConfetti(false);
+                  setQuestionOrder(
+                    shuffle(
+                      Array.from({ length: exercises.length }, (_, i) => i),
+                    ),
+                  );
                   setProgress((p) => ({
                     ...p,
                     [currentIsland]: {
@@ -1406,19 +1626,19 @@ export default function App() {
                     },
                   }));
                 }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-medium transition-all"
               >
                 🔄 Rejouer
               </button>
               <button
                 onClick={() => setScreen("island")}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-medium"
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-medium border border-white/10 transition-all"
               >
                 📋 Niveaux
               </button>
               <button
                 onClick={() => setScreen("map")}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium transition-all"
               >
                 🗺️ Carte
               </button>
@@ -1429,54 +1649,101 @@ export default function App() {
     }
 
     return (
-      <div className={`min-h-screen ${island.color} p-4`}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 p-4">
         <div className="max-w-md mx-auto">
+          {/* Timer bar */}
+          {timeLeft >= 0 && exercise.type !== "blague" && (
+            <div className="bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
+              <div
+                className={`${timerColor} h-2 rounded-full`}
+                style={{
+                  width: `${timerPercent}%`,
+                  transition: "width 1s linear",
+                }}
+              />
+            </div>
+          )}
+
           {/* Progress bar */}
-          <div className="bg-white/20 rounded-full h-3 mb-4 backdrop-blur">
+          <div className="bg-white/10 rounded-full h-3 mb-3">
             <div
-              className="bg-white h-3 rounded-full transition-all"
+              className="bg-white/60 h-3 rounded-full transition-all"
               style={{
                 width: `${((exerciseIndex + 1) / exercises.length) * 100}%`,
               }}
             />
           </div>
 
-          <div className="flex justify-between text-white text-sm mb-4">
-            <span>
+          <div className="flex justify-between text-white text-sm mb-4 items-center">
+            <span className="opacity-70">
               Question {exerciseIndex + 1}/{exercises.length}
             </span>
-            <span>⭐ {progress[currentIsland].stars[currentLevel - 1]}</span>
+            <div className="flex items-center gap-3">
+              {streak >= 2 && (
+                <span className="bg-orange-500/20 text-orange-300 px-2 py-1 rounded-full text-xs font-bold border border-orange-500/30">
+                  🔥 x{streak}
+                </span>
+              )}
+              {timeLeft >= 0 && exercise.type !== "blague" && (
+                <span
+                  className={`font-mono text-sm font-bold ${timeLeft <= 5 ? "text-red-400" : "text-white/70"}`}
+                >
+                  {timeLeft}s
+                </span>
+              )}
+              <span>⭐ {progress[currentIsland].stars[currentLevel - 1]}</span>
+            </div>
           </div>
+
+          {/* Confetti */}
+          {showConfetti && (
+            <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute text-2xl animate-confetti"
+                  style={{
+                    left: `${10 + Math.random() * 80}%`,
+                    top: "50%",
+                    animationDelay: `${Math.random() * 0.3}s`,
+                  }}
+                >
+                  {CONFETTI_EMOJIS[i % CONFETTI_EMOJIS.length]}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Question Card */}
           <div
-            className={`bg-white rounded-3xl p-6 shadow-2xl transition-all ${
+            className={`bg-white/10 backdrop-blur rounded-3xl p-6 shadow-2xl border transition-all animate-slide-in ${
               feedback === "correct"
-                ? "ring-4 ring-green-400"
+                ? "border-green-400 bg-green-500/10"
                 : feedback === "incorrect"
-                  ? "ring-4 ring-red-400"
-                  : ""
+                  ? "border-red-400 bg-red-500/10 animate-shake"
+                  : "border-white/10"
             }`}
+            key={exerciseIndex}
           >
             <div className="text-6xl text-center mb-4">{exercise.img}</div>
-            <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
               {exercise.q}
             </h3>
 
             {/* QCM type */}
             {exercise.type === "qcm" && (
               <div className="space-y-3">
-                {exercise.options.map((opt: string, i: number) => (
+                {shuffledOpts.map((opt: string, i: number) => (
                   <button
-                    key={i}
+                    key={`${exerciseIndex}-${i}`}
                     onClick={() => !feedback && checkAnswer(opt)}
                     disabled={!!feedback}
                     className={`w-full p-4 rounded-xl text-lg font-medium transition-all ${
                       feedback && opt === exercise.answer
-                        ? "bg-green-500 text-white"
+                        ? "bg-green-500 text-white scale-105"
                         : feedback && opt !== exercise.answer
-                          ? "bg-gray-200 text-gray-400"
-                          : "bg-gray-100 hover:bg-blue-100 text-gray-800 hover:scale-102"
+                          ? "bg-white/5 text-gray-500"
+                          : "bg-white/10 hover:bg-white/20 text-white border border-white/10 hover:border-white/30 hover:scale-[1.02]"
                     }`}
                   >
                     {opt}
@@ -1488,7 +1755,7 @@ export default function App() {
             {/* Completion type */}
             {exercise.type === "completion" && (
               <div className="space-y-4">
-                <p className="text-center text-gray-500 text-sm">
+                <p className="text-center text-gray-400 text-sm">
                   Tape les lettres manquantes :
                 </p>
                 <input
@@ -1497,7 +1764,7 @@ export default function App() {
                   onChange={(e) => setTextInput(e.target.value)}
                   disabled={!!feedback}
                   autoFocus
-                  className="w-full p-4 rounded-xl text-lg font-medium text-center border-2 border-gray-300 focus:border-blue-400 focus:outline-none"
+                  className="w-full p-4 rounded-xl text-lg font-medium text-center bg-white/10 border-2 border-white/20 focus:border-indigo-400 focus:outline-none text-white placeholder-gray-500"
                   placeholder="..."
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !feedback && textInput) {
@@ -1508,7 +1775,7 @@ export default function App() {
                 <button
                   onClick={() => checkCompletion()}
                   disabled={!!feedback || !textInput}
-                  className="w-full p-4 rounded-xl text-lg font-medium bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full p-4 rounded-xl text-lg font-medium bg-indigo-500 hover:bg-indigo-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Valider
                 </button>
@@ -1521,21 +1788,21 @@ export default function App() {
                 {!jokeRevealed ? (
                   <button
                     onClick={() => setJokeRevealed(true)}
-                    className="w-full p-4 rounded-xl text-lg font-medium bg-yellow-400 hover:bg-yellow-500 text-yellow-900 transition-all hover:scale-102"
+                    className="w-full p-4 rounded-xl text-lg font-medium bg-yellow-500 hover:bg-yellow-400 text-yellow-900 transition-all hover:scale-[1.02]"
                   >
                     Voir la réponse !
                   </button>
                 ) : (
                   <div className="space-y-4">
-                    <div className="bg-yellow-50 p-4 rounded-xl text-center animate-bounce">
-                      <p className="text-lg font-bold text-yellow-800">
+                    <div className="bg-yellow-500/20 border border-yellow-500/30 p-4 rounded-xl text-center">
+                      <p className="text-lg font-bold text-yellow-300">
                         {exercise.answer}
                       </p>
                     </div>
                     <div className="flex justify-center gap-1 text-2xl">⭐</div>
                     <button
                       onClick={() => handleJokeNext()}
-                      className="w-full p-4 rounded-xl text-lg font-medium bg-green-500 hover:bg-green-600 text-white transition-all"
+                      className="w-full p-4 rounded-xl text-lg font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-all"
                     >
                       Blague suivante
                     </button>
@@ -1548,12 +1815,16 @@ export default function App() {
               <div
                 className={`mt-4 p-4 rounded-xl text-center text-lg font-bold ${
                   feedback === "correct"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                    : "bg-red-500/20 text-red-300 border border-red-500/30"
                 }`}
               >
                 {feedback === "correct"
-                  ? "✅ Bravo !"
+                  ? streak >= 3
+                    ? `🔥 Incroyable ! Combo x${streak} !`
+                    : streak >= 2
+                      ? "⭐ Super, continue !"
+                      : "✅ Bravo !"
                   : `❌ La réponse était : ${exercise.answer}`}
               </div>
             )}
@@ -1561,7 +1832,7 @@ export default function App() {
 
           <button
             onClick={() => setScreen("island")}
-            className="mt-4 w-full bg-white/20 hover:bg-white/30 text-white py-3 rounded-xl backdrop-blur"
+            className="mt-4 w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl backdrop-blur border border-white/10"
           >
             ← Quitter l'exercice
           </button>
